@@ -366,7 +366,7 @@ var camels = ['defaultValue', 'accessKey', 'cellPadding', 'cellSpacing', 'colSpa
 var bools = ['compact', 'nowrap', 'ismap', 'declare', 'noshade', 'checked', 'disabled', 'readOnly', 'multiple', 'selected',
 	'noresize', 'defer'
 ];
- var attributes = {
+var attributes = {
 	'html': 'innerHTML',
 	'class': 'className',
 	'for': 'htmlFor',
@@ -467,7 +467,7 @@ Element.implement({
 		attribute = camels[attribute] || attribute;
 		if (value == null) return this.removeProperty(attribute);
 		var key = attributes[attribute];
-		(key) ? this[key] = value :
+		(key && (attribute != 'value' && !Browser.opera)) ? this[key] = value :
 			(bools[attribute]) ? this[attribute] = !!value : this.setAttribute(attribute, '' + value);
 		return this;
 	},
