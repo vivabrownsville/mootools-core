@@ -1,82 +1,103 @@
 Object: Browser {#Browser}
 ==========================
 
-Some browser properties are attached to the Browser Object for browser and platform detection.
+Browser contains properties attached to the Browser Object for browser version, feature and platform detection.
 
 Browser.Features {#Browser:Browser-Features}
 --------------------------------------------
 
 * Browser.Features.xpath - (*boolean*) True if the browser supports DOM queries using XPath.
-* Browser.Features.air - (*boolean*)  True if the browser supports AIR.
+* Browser.Features.air   - (*boolean*) True if the browser supports Adobe AIR.
 * Browser.Features.query - (*boolean*) True if the browser supports querySelectorAll.
-* Browser.Features.json - (*boolean*) True if the browser has a native JSON object.
-* Browser.Features.xhr - (*boolean*) True if the browser supports native XMLHTTP object.
+* Browser.Features.json  - (*boolean*) True if the browser supports JSON natively.
+* Browser.Features.xhr   - (*boolean*) True if the browser supports XMLHttpRequest natively.
 
 Browser.name {#Browser:Browser-name}
 ------------------------------------
 
-'Browser.name' reports the name of the Browser as string, identical to the property names of the following Boolean values:
+Returns the name of the browser as string. The possible return values are:
 
-* Browser.ie - (*boolean*) True if the current browser is Internet Explorer.
-* Browser.firefox - (*boolean*) True if the current browser is Firefox.
-* Browser.safari - (*boolean*) True if the current browser is Safari.
-* Browser.chrome - (*boolean*) True if the current browser is Chrome.
-* Browser.opera - (*boolean*) True if the current browser is Opera.
+* **"ie"** for Windows Internet Explorer.
+* **"firefox"** for Mozilla Firefox.
+* **"safari"** for Apple Safari.
+* **"chrome"** for Google Chrome.
+* **"opera"** for Opera.
 
-In addition to one of the above properties a second property consisting of the name and the major version is provided ('Browser.ie6', 'Browser.chrome15', ...).
+You can check for a specific browser through the identical property name in the Browser Object:
 
-If 'Browser.chrome' is True, all other possible properties, like 'Browser.firefox', 'Browser.ie', ... , will be `undefined`.
+* Browser.ie      - (*boolean*) True if the current browser is Windows Internet Explorer.
+* Browser.firefox - (*boolean*) True if the current browser is Mozilla Firefox.
+* Browser.safari  - (*boolean*) True if the current browser is Apple Safari.
+* Browser.chrome  - (*boolean*) True if the current browser is Google Chrome.
+* Browser.opera   - (*boolean*) True if the current browser is Opera.
 
-### Example:
+You can check for any specific major version of a browser by adding the appropriate version number to the property names above:
 
-	alert(Browser.name); // Alerts "ie" in Internet Explorer, "firefox" in Mozilla Firefox, "chrome" in Google Chrome, "safari" or "opera".
+* Browser.ie6      - (*boolean*) True if the current browser is Microsoft Internet Explorer v6.x.
+* Browser.firefox3 - (*boolean*) True if the current browser is Mozilla Firefox v3.x.
+* Browser.safari4  - (*boolean*) True if the current browser is Apple Safari v4.x.
+* Browser.chrome8  - (*boolean*) True if the current browser is Google Chrome v8.x.
+* Browser.opera9   - (*boolean*) True if the current browser is Opera v9.x.
+
+
+### Examples:
+
+	alert(Browser.name); // alerts "ie" in Windows Internet Explorer, "firefox" in Mozilla Firefox, "safari" in Apple Safari, "chrome" in Google Chrome or "opera" in Opera.
 
 	if (Browser.ie){
-		// This code will only run in IE
+		alert("Hey Redmond!"); // alerts in any Internet Explorer.
 	}
 
 	if (Browser.firefox2){
-		// This code will only run in Firefox 2
+		alert("Firefox rocks, but you should get the latest version!"); // alerts only in Mozilla Firefox v2.x.
 	}
 
 	if (Browser.ie6 || Browser.ie7){
-		// Please upgrade your browser
+		alert("Please upgrade your browser!); // alerts only in Microsoft Internet Explorer v6.x or v7.x.
 	}
 
-If an IE document is set to backwards compatibility mode using the X-UA-Compatible header, then the Browser object is treated as if the earlier version of the browser is running.
+### Notes:
+
+Non-matching properties return `undefined`. For example, if you check for `Browser.ie` in Mozilla Firefox or for `Browser.chrome8` in Google Chrome v7.x, `undefined` is returned.
+
+If Windows Internet Explorer is in the compatibility mode (set by the X-UA-Compatible header), the Browser Object is treated as if the specified earlier version of the browser is running.
 
 Browser.version {#Browser:Browser-version}
 ------------------------------------------
 
-'Browser.version' reports the version of the Browser as number.
+Returns the version of the browser as number.
 
 ### Example:
 
-	alert(Browser.version); // Alerts '3.6' in FireFox 3.6.13
+	alert(Browser.version); // alerts "3.6" in Mozilla Firefox 3.6.13 or "8" in Google Chrome 8.0.552.237.
 
 Browser.Platform {#Browser:Browser-Platform}
 --------------------------------------------
 
-* Browser.Platform.mac - (*boolean*) True if the platform is Mac.
-* Browser.Platform.win - (*boolean*) True if the platform is Windows.
-* Browser.Platform.linux - (*boolean*) True if the platform is Linux.
-* Browser.Platform.ios - (*boolean*) True if the platform is iOS.
-* Browser.Platform.android - (*boolean*) True if the platform is Android
-* Browser.Platform.webos - (*boolean*) True if the platform is WebOS
-* Browser.Platform.other - (*boolean*) True if the platform is neither Mac, Windows, Linux, Android, WebOS nor iOS.
-* Browser.Platform.name - (*string*) The name of the platform.
+* Browser.Platform.mac     - (*boolean*) True if the platform is Mac.
+* Browser.Platform.win     - (*boolean*) True if the platform is Windows.
+* Browser.Platform.linux   - (*boolean*) True if the platform is Linux.
+* Browser.Platform.ios     - (*boolean*) True if the platform is iOS.
+* Browser.Platform.android - (*boolean*) True if the platform is Android.
+* Browser.Platform.webos   - (*boolean*) True if the platform is WebOS.
+* Browser.Platform.other   - (*boolean*) True if the platform is neither Mac, Windows, Linux, iOS, Android or WebOS.
+* Browser.Platform.name    - (*string*) The name of the platform.
 
 Browser.Plugins {#Browser:Browser-Plugins}
 ------------------------------------------
 
-* Browser.Plugins.Flash - (*boolean*) - True if Flash is present.
+* Browser.Plugins.Flash         - (*boolean*) True if Adobe Flash is present.
 * Browser.Plugins.Flash.version - (*number*) The major version of the flash plugin installed.
-* Browser.Plugins.Flash.build - (*number*) The build version of the flash plugin installed.
+* Browser.Plugins.Flash.build   - (*number*) The build version of the flash plugin installed.
+
+### Example:
+
+Running Adobe Flash v10.1.102.64 `Browser.Plugins.Flash.version` will return `10` and `Browser.Plugins.Flash.build` will return `102`.
 
 Browser.Request {#Browser:Browser-Request}
 ------------------------------------------
 
-* Browser.Request - (*object*) The XMLHTTP object or equivalent.
+* Browser.Request - (*object*) The XMLHttpRequest object or an equivalent.
 
 Browser.exec {#Browser:Browser-exec}
 ------------------------------------
@@ -87,10 +108,11 @@ Executes the passed in string in the browser context.
 
 	Browser.exec('alert("Moo!");');
 
+
 Deprecated {#Deprecated}
 ------------------------
 
-The *Browser.Engine* object is deprecated since MooTools 1.3.
+The `Browser.Engine` object is deprecated since MooTools 1.3.
 
 ### Engine:
 
@@ -100,3 +122,4 @@ The *Browser.Engine* object is deprecated since MooTools 1.3.
 * Browser.Engine.presto - (*boolean*) True if the current browser uses the presto engine (e.g. Opera 9).
 * Browser.Engine.name - (*string*) The name of the engine.
 * Browser.Engine.version - (*number*) The version of the engine. (e.g. 950)
+
