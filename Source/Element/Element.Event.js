@@ -16,9 +16,9 @@ provides: Element.Event
 
 (function(){
 
-Element.Properties.events = {set: function(events){
+Element.definePropertySetter('events', function(events){
 	this.addEvents(events);
-}};
+});
 
 [Element, Window, Document].invoke('implement', {
 
@@ -28,7 +28,7 @@ Element.Properties.events = {set: function(events){
 		if (events[type].keys.contains(fn)) return this;
 		events[type].keys.push(fn);
 		var realType = type,
-			custom = Element.Events[type],
+			custom = Element.lookupEvent(type),
 			condition = fn,
 			self = this;
 		if (custom){
@@ -44,7 +44,7 @@ Element.Properties.events = {set: function(events){
 		var defn = function(){
 			return fn.call(self);
 		};
-		var nativeEvent = Element.NativeEvents[realType];
+		var nativeEvent = Element.lookupNativeEvent(realType);
 		if (nativeEvent){
 			if (nativeEvent == 2){
 				defn = function(event){
@@ -67,12 +67,12 @@ Element.Properties.events = {set: function(events){
 		var value = list.values[index];
 		delete list.keys[index];
 		delete list.values[index];
-		var custom = Element.Events[type];
+		var custom = Element.lookupEvent(type);
 		if (custom){
 			if (custom.onRemove) custom.onRemove.call(this, fn);
 			type = custom.base || type;
 		}
-		return (Element.NativeEvents[type]) ? this.removeListener(type, value, arguments[2]) : this;
+		return Element.lookupNativeEvent(type) ? this.removeListener(type, value, arguments[2]) : this;
 	},
 
 	addEvents: function(events){
@@ -134,7 +134,10 @@ try {
 		HTMLElement.prototype.fireEvent = Element.prototype.fireEvent;
 } catch(e){}
 
-Element.NativeEvents = {
+
+var NativeEvents = Element.NativeEvents = {};
+
+Element.extend(new Accessor('NativeEvent', null, NativeEvents)).defineNativeEvents({
 	click: 2, dblclick: 2, mouseup: 2, mousedown: 2, contextmenu: 2, //mouse buttons
 	mousewheel: 2, DOMMouseScroll: 2, //mouse wheel
 	mouseover: 2, mouseout: 2, mousemove: 2, selectstart: 2, selectend: 2, //mouse movement
@@ -145,7 +148,8 @@ Element.NativeEvents = {
 	focus: 2, blur: 2, change: 2, reset: 2, select: 2, submit: 2, //form elements
 	load: 2, unload: 1, beforeunload: 2, resize: 1, move: 1, DOMContentLoaded: 1, readystatechange: 1, //window
 	error: 1, abort: 1, scroll: 1 //misc
-};
+});
+
 
 var check = function(event){
 	var related = event.relatedTarget;
@@ -154,7 +158,12 @@ var check = function(event){
 	return (related != this && related.prefix != 'xul' && typeOf(this) != 'document' && !this.contains(related));
 };
 
-Element.Events = {
+var events = Element.Events = {};
+//<1.2compat>
+events = Element.Events = new Hash();
+//</1.2compat>
+
+Element.extend(new Accessor('Event', null, events)).defineEvents({
 
 	mouseenter: {
 		base: 'mouseover',
@@ -170,12 +179,6 @@ Element.Events = {
 		base: (Browser.firefox) ? 'DOMMouseScroll' : 'mousewheel'
 	}
 
-};
-
-//<1.2compat>
-
-Element.Events = new Hash(Element.Events);
-
-//</1.2compat>
+});
 
 })();
