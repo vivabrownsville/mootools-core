@@ -37,6 +37,7 @@ sources:
   - "Source/Request/Request.js"
   - "Source/Request/Request.HTML.js"
   - "Source/Request/Request.JSON.js"
+  - "Source/Utilities/Accessor.js"
   - "Source/Utilities/Cookie.js"
   - "Source/Utilities/JSON.js"
   - "Source/Utilities/DOMReady.js"
