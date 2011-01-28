@@ -11,7 +11,7 @@ provides: Accessor
 
 /* Accessor */
 
-this.Accessor = function(singular, plural, accessor){
+this.Accessor = function(singular, plural, accessor, getterSetter){
 
 	singular = (singular || '').capitalize();
 	if (!plural) plural = singular + 's';
@@ -30,12 +30,13 @@ this.Accessor = function(singular, plural, accessor){
 
 	this[define + singular] = function(key, value){
 		if (typeOf(key) == 'regexp') matchers.push({'regexp': key, 'action': value});
+		else if (getterSetter) (accessor[key] || (accessor[key] = {}))[getterSetter] = value;
 		else accessor[key] = value;
 		return this;
 	};
 
 	this[define + plural] = function(object){
-		for (var key in object) accessor[key] = object[key];
+		for (var key in object) this[define + singular](key, object[key]);
 		return this;
 	};
 
@@ -50,11 +51,13 @@ this.Accessor = function(singular, plural, accessor){
 	};
 
 	this[lookup + singular] = function(key){
-		return accessor[key] || null;
+		var value = accessor[key];
+		return (getterSetter && value) ? value[getterSetter] : value;
 	};
 
 	this[lookup + plural] = function(keys){
-		return Object.subset(accessor, keys);
+		var subset = Object.subset(accessor, keys);
+		return getterSetter ? subset[getterSetter] : subset;
 	};
 
 	this[each + singular] = function(fn, bind){
