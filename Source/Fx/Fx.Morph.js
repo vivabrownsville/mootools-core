@@ -52,6 +52,7 @@ Fx.Morph = new Class({
 Element.definePropertySetter('morph', function(options){
 	this.get('morph').cancel().setOptions(options);
 	return this;
+
 }).definePropertyGetter('morph', function(){
 	var morph = this.retrieve('morph');
 	if (!morph){
@@ -59,9 +60,8 @@ Element.definePropertySetter('morph', function(options){
 		this.store('morph', morph);
 	}
 	return morph;
-});
 
-Element.implement('morph', function(props){
+}).implement('morph', function(props){
 	this.get('morph').start(props);
 	return this;
 });

@@ -45,6 +45,7 @@ Fx.Tween = new Class({
 Element.definePropertySetter('tween', function(options){
 	this.get('tween').cancel().setOptions(options);
 	return this;
+
 }).definePropertyGetter('tween', function(){
 	var tween = this.retrieve('tween');
 	if (!tween){
@@ -52,10 +53,8 @@ Element.definePropertySetter('tween', function(options){
 		this.store('tween', tween);
 	}
 	return tween;
-});
 
-
-Element.implement({
+}).implement({
 
 	tween: function(property, from, to){
 		this.get('tween').start(arguments);
