@@ -7,7 +7,7 @@ description: Contains methods for interacting with the styles of Elements in a f
 
 license: MIT-style license.
 
-requires: Element
+requires: [Element, Accessor]
 
 provides: Element.Style
 
@@ -39,6 +39,23 @@ var setOpacity = function(element, opacity){
 Element.Properties.opacity = {
 
 	set: function(opacity){
+		return this.setStyle('opacity');
+	},
+
+	get: function(){
+		return this.getStyle('opacity');
+	}
+
+};
+
+var floatName = (html.style.cssFloat == null) ? 'styleFloat' : 'cssFloat';
+
+
+Element.extend(new Accessor('StyleSetter')).extend(new Accessor('StyleGetter'));
+
+Element.defineStyleSetters({
+
+	opacity: function(opacity){
 		var visibility = this.style.visibility;
 		if (opacity == 0 && visibility != 'hidden') this.style.visibility = 'hidden';
 		else if (opacity != 0 && visibility != 'visible') this.style.visibility = 'visible';
@@ -46,18 +63,27 @@ Element.Properties.opacity = {
 		setOpacity(this, opacity);
 	},
 
-	get: (hasOpacity) ? function(){
+	float: function(float){
+		this.style[floatName] = float;
+	}
+
+}).defineStyleGetters({
+
+	opacity: (hasOpacity) ? function(){
 		var opacity = this.style.opacity || this.getComputedStyle('opacity');
 		return (opacity == '') ? 1 : opacity;
 	} : function(){
 		var opacity, filter = (this.style.filter || this.getComputedStyle('filter'));
 		if (filter) opacity = filter.match(reAlpha);
 		return (opacity == null || filter == null) ? 1 : (opacity[1] / 100);
+	},
+
+	float: function(){
+		return this.style[floatName];
 	}
 
-};
+});
 
-var floatName = (html.style.cssFloat == null) ? 'styleFloat' : 'cssFloat';
 
 Element.implement({
 
@@ -78,11 +104,14 @@ Element.implement({
 	},
 
 	setStyle: function(property, value){
-		switch (property){
-			case 'opacity': return this.set('opacity', parseFloat(value));
-			case 'float': property = floatName;
-		}
 		property = property.camelCase();
+
+		var setter = Element.lookupStyleSetter(property);
+		if (setter){
+			setter.call(this, value);
+			return this;
+		}
+
 		if (typeOf(value) != 'string'){
 			var map = (Element.Styles[property] || '@').split(' ');
 			value = Array.from(value).map(function(val, i){
@@ -97,11 +126,11 @@ Element.implement({
 	},
 
 	getStyle: function(property){
-		switch (property){
-			case 'opacity': return this.get('opacity');
-			case 'float': property = floatName;
-		}
 		property = property.camelCase();
+
+		var getter = Element.lookupStyleGetter(property);
+		if (getter) return getter.call(this);
+
 		var result = this.style[property];
 		if (!result || property == 'zIndex'){
 			result = [];
