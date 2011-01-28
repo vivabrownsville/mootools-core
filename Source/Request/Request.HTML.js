@@ -52,30 +52,20 @@ Request.HTML = new Class({
 
 });
 
-Element.Properties.load = {
+Element.definePropertySetter('load', function(options){
+	var load = this.get('load').cancel();
+	load.setOptions(options);
+	return this;
 
-	set: function(options){
-		var load = this.get('load').cancel();
-		load.setOptions(options);
-		return this;
-	},
-
-	get: function(){
-		var load = this.retrieve('load');
-		if (!load){
-			load = new Request.HTML({data: this, link: 'cancel', update: this, method: 'get'});
-			this.store('load', load);
-		}
-		return load;
+}).definePropertyGetter('load', function(){
+	var load = this.retrieve('load');
+	if (!load){
+		load = new Request.HTML({data: this, link: 'cancel', update: this, method: 'get'});
+		this.store('load', load);
 	}
+	return load;
 
-};
-
-Element.implement({
-
-	load: function(){
-		this.get('load').send(Array.link(arguments, {data: Type.isObject, url: Type.isString}));
-		return this;
-	}
-
+}).implement('load', function(){
+	this.get('load').send(Array.link(arguments, {data: Type.isObject, url: Type.isString}));
+	return this;
 });
