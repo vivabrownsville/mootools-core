@@ -16,14 +16,28 @@ provides: Element.Style
 
 (function(){
 
-var html = document.html;
+Element.definePropertySetters({
 
-Element.Properties.styles = {set: function(styles){
-	this.setStyles(styles);
-}};
+	opacity: function(opacity){
+		return this.setStyle('opacity', opacity);
+	},
 
-var hasOpacity = (html.style.opacity != null);
-var reAlpha = /alpha\(opacity=([\d.]+)\)/i;
+	styles: function(styles){
+		this.setStyles(styles);
+	}
+
+}).definePropertyGetter('opacity', function(){
+	return this.getStyle('opacity');
+});
+
+
+Element.extend(new Accessor('StyleSetter'))
+       .extend(new Accessor('StyleGetter'));
+
+var html = document.html,
+	hasOpacity = (html.style.opacity != null),
+	reAlpha = /alpha\(opacity=([\d.]+)\)/i,
+	floatName = (html.style.cssFloat == null) ? 'styleFloat' : 'cssFloat';
 
 var setOpacity = function(element, opacity){
 	if (!element.currentStyle || !element.currentStyle.hasLayout) element.style.zoom = 1;
@@ -35,23 +49,6 @@ var setOpacity = function(element, opacity){
 		element.style.filter = reAlpha.test(filter) ? filter.replace(reAlpha, opacity) : filter + opacity;
 	}
 };
-
-Element.Properties.opacity = {
-
-	set: function(opacity){
-		return this.setStyle('opacity', opacity);
-	},
-
-	get: function(){
-		return this.getStyle('opacity');
-	}
-
-};
-
-var floatName = (html.style.cssFloat == null) ? 'styleFloat' : 'cssFloat';
-
-
-Element.extend(new Accessor('StyleSetter')).extend(new Accessor('StyleGetter'));
 
 Element.defineStyleSetters({
 
@@ -105,7 +102,6 @@ Element.implement({
 
 	setStyle: function(property, value){
 		property = property.camelCase();
-
 		var setter = Element.lookupStyleSetter(property);
 		if (setter){
 			setter.call(this, value);
@@ -113,7 +109,7 @@ Element.implement({
 		}
 
 		if (typeOf(value) != 'string'){
-			var map = (Element.Styles[property] || '@').split(' ');
+			var map = (Element.lookupStyle(property) || '@').split(' ');
 			value = Array.from(value).map(function(val, i){
 				if (!map[i]) return '';
 				return (typeOf(val) == 'number') ? map[i].replace('@', Math.round(val)) : val;
@@ -127,7 +123,6 @@ Element.implement({
 
 	getStyle: function(property){
 		property = property.camelCase();
-
 		var getter = Element.lookupStyleGetter(property);
 		if (getter) return getter.call(this);
 
@@ -158,24 +153,22 @@ Element.implement({
 			if ((/^border(.+)Width|margin|padding/).test(property)) return '0px';
 		}
 		return result;
-	},
-
-	setStyles: function(styles){
-		for (var style in styles) this.setStyle(style, styles[style]);
-		return this;
-	},
-
-	getStyles: function(){
-		var result = {};
-		Array.flatten(arguments).each(function(key){
-			result[key] = this.getStyle(key);
-		}, this);
-		return result;
 	}
 
 });
 
-Element.Styles = {
+var ElementProto = Element.prototype;
+Element.implement({
+	setStyles: ElementProto.setStyle.overloadSetter(),
+	getStyles: ElementProto.getStyle.overloadGetter()
+});
+
+var styles = Element.Styles = {};
+//<1.2compat>
+styles = Element.Styles = new Hash();
+//</1.2compat>
+
+Element.extend(new Accessor('Style', null, styles)).defineStyles({
 	left: '@px', top: '@px', bottom: '@px', right: '@px',
 	width: '@px', height: '@px', maxWidth: '@px', maxHeight: '@px', minWidth: '@px', minHeight: '@px',
 	backgroundColor: 'rgb(@, @, @)', backgroundPosition: '@px @px', color: 'rgb(@, @, @)',
@@ -183,30 +176,24 @@ Element.Styles = {
 	margin: '@px @px @px @px', padding: '@px @px @px @px', border: '@px @ rgb(@, @, @) @px @ rgb(@, @, @) @px @ rgb(@, @, @)',
 	borderWidth: '@px @px @px @px', borderStyle: '@ @ @ @', borderColor: 'rgb(@, @, @) rgb(@, @, @) rgb(@, @, @) rgb(@, @, @)',
 	zIndex: '@', 'zoom': '@', fontWeight: '@', textIndent: '@px', opacity: '@'
-};
-
-//<1.2compat>
-
-Element.Styles = new Hash(Element.Styles);
-
-//</1.2compat>
+});
 
 Element.ShortStyles = {margin: {}, padding: {}, border: {}, borderWidth: {}, borderStyle: {}, borderColor: {}};
+Element.extend(new Accessor('ShortStyle', null, Element.ShortStyles));
 
 ['Top', 'Right', 'Bottom', 'Left'].each(function(direction){
 	var Short = Element.ShortStyles;
-	var All = Element.Styles;
 	['margin', 'padding'].each(function(style){
 		var sd = style + direction;
-		Short[style][sd] = All[sd] = '@px';
+		Short[style][sd] = styles[sd] = '@px';
 	});
 	var bd = 'border' + direction;
-	Short.border[bd] = All[bd] = '@px @ rgb(@, @, @)';
+	Short.border[bd] = styles[bd] = '@px @ rgb(@, @, @)';
 	var bdw = bd + 'Width', bds = bd + 'Style', bdc = bd + 'Color';
 	Short[bd] = {};
-	Short.borderWidth[bdw] = Short[bd][bdw] = All[bdw] = '@px';
-	Short.borderStyle[bds] = Short[bd][bds] = All[bds] = '@';
-	Short.borderColor[bdc] = Short[bd][bdc] = All[bdc] = 'rgb(@, @, @)';
+	Short.borderWidth[bdw] = Short[bd][bdw] = styles[bdw] = '@px';
+	Short.borderStyle[bds] = Short[bd][bds] = styles[bds] = '@';
+	Short.borderColor[bdc] = Short[bd][bdc] = styles[bdc] = 'rgb(@, @, @)';
 });
 
 })();
