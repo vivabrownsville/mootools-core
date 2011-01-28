@@ -7,7 +7,7 @@ description: Contains the basic animation logic to be extended by all other Fx C
 
 license: MIT-style license.
 
-requires: [Chain, Events, Options]
+requires: [Chain, Events, Options, Accessor]
 
 provides: Fx
 
@@ -53,7 +53,7 @@ var Fx = this.Fx = new Class({
 		} else {
 			this.frame++;
 		}
-		
+
 		if (this.frame < this.frames){
 			var delta = this.transition(this.frame / this.frames);
 			this.set(this.compute(this.from, this.to, delta));
@@ -89,14 +89,14 @@ var Fx = this.Fx = new Class({
 		this.time = null;
 		this.transition = this.getTransition();
 		var frames = this.options.frames, fps = this.options.fps, duration = this.options.duration;
-		this.duration = Fx.Durations[duration] || duration.toInt();
+		this.duration = Fx.lookupDuration(duration) || duration.toInt();
 		this.frameInterval = 1000 / fps;
 		this.frames = frames || Math.round(this.duration / this.frameInterval);
 		this.fireEvent('start', this.subject);
 		pushInstance.call(this, fps);
 		return this;
 	},
-	
+
 	stop: function(){
 		if (this.isRunning()){
 			this.time = null;
@@ -110,7 +110,7 @@ var Fx = this.Fx = new Class({
 		}
 		return this;
 	},
-	
+
 	cancel: function(){
 		if (this.isRunning()){
 			this.time = null;
@@ -120,7 +120,7 @@ var Fx = this.Fx = new Class({
 		}
 		return this;
 	},
-	
+
 	pause: function(){
 		if (this.isRunning()){
 			this.time = null;
@@ -128,12 +128,12 @@ var Fx = this.Fx = new Class({
 		}
 		return this;
 	},
-	
+
 	resume: function(){
 		if ((this.frame < this.frames) && !this.isRunning()) pushInstance.call(this, this.options.fps);
 		return this;
 	},
-	
+
 	isRunning: function(){
 		var list = instances[this.options.fps];
 		return list && list.contains(this);
@@ -145,7 +145,8 @@ Fx.compute = function(from, to, delta){
 	return (to - from) * delta + from;
 };
 
-Fx.Durations = {'short': 250, 'normal': 500, 'long': 1000};
+Fx.Durations = {};
+Fx.extend(new Accessor('duration', null, Fx.Durations)).defineDurations({'short': 250, 'normal': 500, 'long': 1000});
 
 // global timers
 

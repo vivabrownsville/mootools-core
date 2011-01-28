@@ -49,29 +49,19 @@ Fx.Morph = new Class({
 
 });
 
-Element.Properties.morph = {
-
-	set: function(options){
-		this.get('morph').cancel().setOptions(options);
-		return this;
-	},
-
-	get: function(){
-		var morph = this.retrieve('morph');
-		if (!morph){
-			morph = new Fx.Morph(this, {link: 'cancel'});
-			this.store('morph', morph);
-		}
-		return morph;
+Element.definePropertySetter('morph', function(options){
+	this.get('morph').cancel().setOptions(options);
+	return this;
+}).definePropertyGetter('morph', function(){
+	var morph = this.retrieve('morph');
+	if (!morph){
+		morph = new Fx.Morph(this, {link: 'cancel'});
+		this.store('morph', morph);
 	}
+	return morph;
+});
 
-};
-
-Element.implement({
-
-	morph: function(props){
-		this.get('morph').start(props);
-		return this;
-	}
-
+Element.implement('morph', function(props){
+	this.get('morph').start(props);
+	return this;
 });

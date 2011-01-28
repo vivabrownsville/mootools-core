@@ -7,7 +7,7 @@ description: Contains the CSS animation logic. Used by Fx.Tween, Fx.Morph, Fx.El
 
 license: MIT-style license.
 
-requires: [Fx, Element.Style]
+requires: [Fx, Element.Style, Accessor]
 
 provides: Fx.CSS
 
@@ -38,12 +38,12 @@ Fx.CSS = new Class({
 		return value.map(function(val){
 			val = String(val);
 			var found = false;
-			Object.each(Fx.CSS.Parsers, function(parser, key){
+			Fx.CSS.eachParser(function(parser, key){
 				if (found) return;
 				var parsed = parser.parse(val);
 				if (parsed || parsed === 0) found = {value: parsed, parser: parser};
 			});
-			found = found || {value: val, parser: Fx.CSS.Parsers.String};
+			found = found || {value: val, parser: Fx.CSS.lookupParser('String')};
 			return found;
 		});
 	},
@@ -105,7 +105,15 @@ Fx.CSS = new Class({
 
 Fx.CSS.Cache = {};
 
-Fx.CSS.Parsers = {
+Fx.CSS.Parsers = {};
+
+//<1.2compat>
+
+Fx.CSS.Parsers = new Hash();
+
+//</1.2compat>
+
+Fx.CSS.extend(new Accessor('parser', null, Fx.CSS.Parsers)).defineParsers({
 
 	Color: {
 		parse: function(value){
@@ -140,10 +148,4 @@ Fx.CSS.Parsers = {
 		}
 	}
 
-};
-
-//<1.2compat>
-
-Fx.CSS.Parsers = new Hash(Fx.CSS.Parsers);
-
-//</1.2compat>
+});

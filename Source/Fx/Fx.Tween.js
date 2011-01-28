@@ -42,23 +42,18 @@ Fx.Tween = new Class({
 
 });
 
-Element.Properties.tween = {
-
-	set: function(options){
-		this.get('tween').cancel().setOptions(options);
-		return this;
-	},
-
-	get: function(){
-		var tween = this.retrieve('tween');
-		if (!tween){
-			tween = new Fx.Tween(this, {link: 'cancel'});
-			this.store('tween', tween);
-		}
-		return tween;
+Element.definePropertySetter('tween', function(options){
+	this.get('tween').cancel().setOptions(options);
+	return this;
+}).definePropertyGetter('tween', function(){
+	var tween = this.retrieve('tween');
+	if (!tween){
+		tween = new Fx.Tween(this, {link: 'cancel'});
+		this.store('tween', tween);
 	}
+	return tween;
+});
 
-};
 
 Element.implement({
 

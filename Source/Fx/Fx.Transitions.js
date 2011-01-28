@@ -10,26 +10,15 @@ license: MIT-style license.
 credits:
   - Easing Equations by Robert Penner, <http://www.robertpenner.com/easing/>, modified and optimized to be used with MooTools.
 
-requires: Fx
+requires: [Fx, Accessor]
 
 provides: Fx.Transitions
 
 ...
 */
 
-Fx.implement({
-
-	getTransition: function(){
-		var trans = this.options.transition || Fx.Transitions.Sine.easeInOut;
-		if (typeof trans == 'string'){
-			var data = trans.split(':');
-			trans = Fx.Transitions;
-			trans = trans[data[0]] || trans[data[0].capitalize()];
-			if (data[1]) trans = trans['ease' + data[1].capitalize() + (data[2] ? data[2].capitalize() : '')];
-		}
-		return trans;
-	}
-
+Fx.implement('getTransition', function(){
+	return Fx.lookupTransition(this.options.transition || 'Sine');
 });
 
 Fx.Transition = function(transition, params){
@@ -48,25 +37,39 @@ Fx.Transition = function(transition, params){
 	});
 };
 
-Fx.Transitions = {
+Fx.Transitions = {};
+
+//<1.2compat>
+Fx.Transitions = new Hash();
+//</1.2compat>
+
+Fx.extend(new Accessor('transition', null, Fx.Transitions));
+
+(function(defineTransition, lookupTransition){
+
+	Fx.defineTransition = function(key, transition){
+		defineTransition(key, new Fx.Transition(transition));
+	};
+
+	Fx.lookupTransition = function(trans){
+		var trans = lookupTransition(trans) || trans;
+		if (typeof trans == 'string'){
+			var data = trans.split(':');
+			trans = lookupTransition(data[0]) || lookupTransition(data[0].capitalize());
+			if (data[1]) trans = trans['ease' + data[1].capitalize() + (data[2] ? data[2].capitalize() : '')];
+		}
+		return trans;
+	};
+
+})(Fx.defineTransition, Fx.lookupTransition);
+
+Fx.Transitions.extend = Fx.defineTransitions;
+
+Fx.defineTransitions({
 
 	linear: function(zero){
 		return zero;
-	}
-
-};
-
-//<1.2compat>
-
-Fx.Transitions = new Hash(Fx.Transitions);
-
-//</1.2compat>
-
-Fx.Transitions.extend = function(transitions){
-	for (var transition in transitions) Fx.Transitions[transition] = new Fx.Transition(transitions[transition]);
-};
-
-Fx.Transitions.extend({
+	},
 
 	Pow: function(p, x){
 		return Math.pow(p, x && x[0] || 6);
@@ -106,8 +109,9 @@ Fx.Transitions.extend({
 
 });
 
+
 ['Quad', 'Cubic', 'Quart', 'Quint'].each(function(transition, i){
-	Fx.Transitions[transition] = new Fx.Transition(function(p){
+	Fx.defineTransition(transition, new Fx.Transition(function(p){
 		return Math.pow(p, i + 2);
-	});
+	}));
 });
