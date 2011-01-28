@@ -7,7 +7,7 @@ description: Contains the Class Function for easily creating, extending, and imp
 
 license: MIT-style license.
 
-requires: [Array, String, Function, Number]
+requires: [Array, String, Function, Number, Accessor]
 
 provides: Class
 
@@ -73,8 +73,9 @@ var wrap = function(self, key, method){
 };
 
 var implement = function(key, value, retain){
-	if (Class.Mutators.hasOwnProperty(key)){
-		value = Class.Mutators[key].call(this, value);
+	var mutator = Class.lookupMutator(key);
+	if (mutator){
+		value = mutator.call(this, value);
 		if (value == null) return this;
 	}
 
@@ -97,7 +98,9 @@ var getInstance = function(klass){
 
 Class.implement('implement', implement.overloadSetter());
 
-Class.Mutators = {
+var mutators = Class.Mutators = {};
+
+Class.extend(new Accessor('mutator', null, mutators)).defineMutators({
 
 	Extends: function(parent){
 		this.parent = parent;
@@ -110,6 +113,6 @@ Class.Mutators = {
 			for (var key in instance) implement.call(this, key, instance[key], true);
 		}, this);
 	}
-};
+});
 
 })();

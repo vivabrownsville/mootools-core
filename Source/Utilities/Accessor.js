@@ -51,7 +51,7 @@ this.Accessor = function(singular, plural, accessor, getterSetter){
 	};
 
 	this[lookup + singular] = function(key){
-		var value = accessor[key];
+		var value = accessor.hasOwnProperty(key) && accessor[key];
 		return (getterSetter && value) ? value[getterSetter] : value;
 	};
 
