@@ -15,7 +15,7 @@ provides: [Element, Elements, $, $$, Iframe, Selectors]
 */
 
 var Element = function(tag, props){
-	var konstructor = Element.Constructors[tag];
+	var konstructor = Element.lookupConstructor(tag);
 	if (konstructor) return konstructor(props);
 	if (typeof tag != 'string') return document.id(tag).set(props);
 
@@ -70,10 +70,10 @@ if (!Browser.Element){
 Element.Constructors = {};
 
 //<1.2compat>
-
 Element.Constructors = new Hash;
-
 //</1.2compat>
+
+Element.extend(new Accessor('constructor', null, Element.Constructors));
 
 var IFrame = new Type('IFrame', function(){
 	var params = Array.link(arguments, {
@@ -779,21 +779,15 @@ if (window.attachEvent && !window.addEventListener) window.addListener('unload',
 var properties = Element.Properties = {};
 
 //<1.2compat>
-
 Element.Properties = properties = new Hash;
-
 //</1.2compat>
 
 Element.extend(new Accessor('PropertySetter', null, properties, 'set'))
        .extend(new Accessor('PropertyGetter', null, properties, 'get'))
        .extend(new Accessor('PropertyEraser', null, properties, 'erase'));
 
-Element.definePropertySetters({
-
-	style: function(style){
-		this.style.cssText = style;
-	}
-
+Element.definePropertySetter('style', function(style){
+	this.style.cssText = style;
 }).definePropertyGetters({
 
 	style: function(){
