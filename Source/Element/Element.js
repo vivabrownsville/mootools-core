@@ -9,7 +9,7 @@ license: MIT-style license.
 
 requires: [Window, Document, Array, String, Function, Number, Slick.Parser, Slick.Finder]
 
-provides: [Element, Elements, $, $$, Iframe, Selectors]
+provides: [Element, Elements, $, $$, Iframe, Selectors, Accessor]
 
 ...
 */
@@ -463,18 +463,18 @@ var injectCombinator = function(expression, combinator){
 Element.implement({
 
 	set: function(prop, value){
-		var property = Element.Properties[prop];
-		(property && property.set) ? property.set.call(this, value) : this.setProperty(prop, value);
+		var setter = Element.lookupPropertySetter(prop);
+		setter ? setter.call(this, value) : this.setProperty(prop, value);
 	}.overloadSetter(),
 
 	get: function(prop){
-		var property = Element.Properties[prop];
-		return (property && property.get) ? property.get.apply(this) : this.getProperty(prop);
+		var getter = Element.lookupPropertyGetter(prop);
+		return getter ? getter.call(this) : this.getProperty(prop);
 	}.overloadGetter(),
 
 	erase: function(prop){
-		var property = Element.Properties[prop];
-		(property && property.erase) ? property.erase.apply(this) : this.removeProperty(prop);
+		var eraser = Element.lookupPropertyEraser(prop);
+		eraser ? eraser.call(this) : this.removeProperty(prop);
 		return this;
 	},
 
@@ -773,82 +773,82 @@ if (window.attachEvent && !window.addEventListener) window.addListener('unload',
 	if (window.CollectGarbage) CollectGarbage();
 });
 
-})();
 
-Element.Properties = {};
+// Element Properties
+
+var properties = Element.Properties = {};
 
 //<1.2compat>
 
-Element.Properties = new Hash;
+Element.Properties = properties = new Hash;
 
 //</1.2compat>
 
-Element.Properties.style = {
+Element.extend(new Accessor('PropertySetter', null, properties, 'set'))
+       .extend(new Accessor('PropertyGetter', null, properties, 'get'))
+       .extend(new Accessor('PropertyEraser', null, properties, 'erase'));
 
-	set: function(style){
+Element.definePropertySetters({
+
+	style: function(style){
 		this.style.cssText = style;
-	},
+	}
 
-	get: function(){
+}).definePropertyGetters({
+
+	style: function(){
 		return this.style.cssText;
 	},
 
-	erase: function(){
-		this.style.cssText = '';
-	}
-
-};
-
-Element.Properties.tag = {
-
-	get: function(){
+	tag: function(){
 		return this.tagName.toLowerCase();
 	}
 
+}).definePropertyEraser('style', function(){
+	this.style.cssText = '';
+});
+
+// maxlength getter
+
+var maxLength = document.createElement('input').getAttribute('maxLength');
+if (maxLength != null){
+	var maxLengthGetter = function(){
+		var maxlength = this.getAttribute('maxLength');
+		return maxlength == maxLength ? null : maxlength;
+	};
+	Element.definePropertyGetters({maxlength: maxLengthGetter, maxLength: maxLengthGetter});
+}
+
+// html setter / eraser properties
+
+var tableTest = Function.attempt(function(){
+	var table = document.createElement('table');
+	table.innerHTML = '<tr><td></td></tr>';
+});
+
+var wrapper = document.createElement('div');
+
+var translations = {
+	table: [1, '<table>', '</table>'],
+	select: [1, '<select>', '</select>'],
+	tbody: [2, '<table><tbody>', '</tbody></table>'],
+	tr: [3, '<table><tbody><tr>', '</tr></tbody></table>']
+};
+translations.thead = translations.tfoot = translations.tbody;
+
+var htmlSetter = function(){
+	var html = Array.flatten(arguments).join('');
+	var wrap = (!tableTest && translations[this.get('tag')]);
+	if (wrap){
+		var first = wrapper;
+		first.innerHTML = wrap[1] + html + wrap[2];
+		for (var i = wrap[0]; i--;) first = first.firstChild;
+		this.empty().adopt(first.childNodes);
+	} else {
+		this.innerHTML = html;
+	}
 };
 
-(function(maxLength){
-	if (maxLength != null) Element.Properties.maxlength = Element.Properties.maxLength = {
-		get: function(){
-			var maxlength = this.getAttribute('maxLength');
-			return maxlength == maxLength ? null : maxlength;
-		}
-	};
-})(document.createElement('input').getAttribute('maxLength'));
+Element.definePropertySetter('html', htmlSetter).definePropertyEraser('html', htmlSetter);
 
-Element.Properties.html = (function(){
-
-	var tableTest = Function.attempt(function(){
-		var table = document.createElement('table');
-		table.innerHTML = '<tr><td></td></tr>';
-	});
-
-	var wrapper = document.createElement('div');
-
-	var translations = {
-		table: [1, '<table>', '</table>'],
-		select: [1, '<select>', '</select>'],
-		tbody: [2, '<table><tbody>', '</tbody></table>'],
-		tr: [3, '<table><tbody><tr>', '</tr></tbody></table>']
-	};
-	translations.thead = translations.tfoot = translations.tbody;
-
-	var html = {
-		set: function(){
-			var html = Array.flatten(arguments).join('');
-			var wrap = (!tableTest && translations[this.get('tag')]);
-			if (wrap){
-				var first = wrapper;
-				first.innerHTML = wrap[1] + html + wrap[2];
-				for (var i = wrap[0]; i--;) first = first.firstChild;
-				this.empty().adopt(first.childNodes);
-			} else {
-				this.innerHTML = html;
-			}
-		}
-	};
-
-	html.erase = html.set;
-
-	return html;
 })();

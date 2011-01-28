@@ -39,7 +39,7 @@ var setOpacity = function(element, opacity){
 Element.Properties.opacity = {
 
 	set: function(opacity){
-		return this.setStyle('opacity');
+		return this.setStyle('opacity', opacity);
 	},
 
 	get: function(){
