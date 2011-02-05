@@ -9,7 +9,7 @@ provides: Store
 
 (function(){
 	
-var uid = String.uniqueID();
+var uid = '$store-' + String.uniqueID();
 
 var storageOf = function(object){
 	return object[uid] || (object[uid] = {});
