@@ -29,21 +29,21 @@ var html = document.documentElement;
 
 DOM.implement({
 
-	addEventListener: ((html.addEventListener) ? function(type, fn){
+	addEventListener: html.addEventListener ? function(type, fn){
 		this.node.addEventListener(type, fn, false);
 		return this;
 	} : function(type, fn){
 		this.node.attachEvent('on' + type, fn);
 		return this;
-	}),
+	},
 
-	removeEventListener: ((html.removeEventListener) ? function(type, fn){
+	removeEventListener: html.removeEventListener ? function(type, fn){
 		this.node.removeEventListener(type, fn, false);
 		return this;
 	} : function(type, fn){
 		this.node.detachEvent('on' + type, fn);
 		return this;
-	})
+	}
 
 });
 
@@ -102,8 +102,8 @@ var $$ = DOM.$$ = function(){
 	return new Elements(elements);
 };
 
-if (this.$ == null) this.$ = DOM.$;
-if (this.$$ == null) this.$$ = DOM.$$;
+if (this.$ == null) this.$ = $;
+if (this.$$ == null) this.$$ = $$;
 
 var Element = DOM.Element = new Class({
 	Matches: '*',
@@ -528,25 +528,25 @@ var Document = DOM.Document = new Class({
 		if (classes.length) props['class'] = classes.join(' ');
 
 		return this.newElement(tag, props);
+	},
+
+	toString: function(){
+		return '<document>';
 	}
 
 });
-
-Document.prototype.toString = function(){
-	return '<document>';
-};
 
 var hostDocument = new Document(document);
 
 var Window = DOM.Window = new Class({
 
-	Extends: DOM
+	Extends: DOM,
+
+	toString: function(){
+		return '<window>';
+	}
 
 });
-
-Window.prototype.toString = function(){
-	return '<window>';
-};
 
 var hostWindow = new Window(window);
 
