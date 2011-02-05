@@ -38,11 +38,11 @@ this.Accessor = function(singular, plural){
 		}
 		return null;
 	};
-	
+
 	this[lookup + singular] = function(key){
-		return accessor[key] || null;
+		return accessor.hasOwnProperty(key) ? accessor[key] : null;
 	};
-	
+
 	this[lookup + plural] = function(keys){
 		return Object.subset(accessor, keys);
 	};
